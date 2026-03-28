@@ -7,7 +7,8 @@
 
 <!-- badges: end -->
 
-The goal of jmisc is to …
+The goal of jmisc is to contain all my miscellaneous R utility
+functions.
 
 ## Installation
 

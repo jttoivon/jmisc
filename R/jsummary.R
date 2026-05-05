@@ -2,8 +2,9 @@
 # DONE This does not handle the case when the sum of "other" elements is less than min_count
 # DONE What if there are less than min_count NAs?
 # TODO For binary vectors, check if there are less than min_count FALSE or TRUE values
-# TODO Calendar times and dates don't work
+# DONE Calendar times and dates don't work
 # DONE The "(Other)" level is not last in the summaries
+# TODO Option to not show quantiles
 
 #' Privacy aware object summaries
 #'
@@ -202,21 +203,56 @@ jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption
   z
 }
 
-#jsummary.POSIXlt <- summary.POSIXlt
-#jsummary.POSIXct <- summary.POSIXct
+# jsummary.POSIXlt <- function (object, digits = 15, ...) {
+#   summary(as.POSIXct(object), digits = digits, ...)
+# }
+
+#' Title
+#'
+#' @param object A calendar date
+#' @param digits Number of digits for fractional seconds
+#' @param ... Additional arguments
+#'
+#' @returns A summaryDefault object
+#' @export
+#'
+#' @examples
+#' jsummary(as.POSIXct(0:10))
+jsummary.POSIXct <- function (object, digits = 15L, ...)
+{
+  x <- summary.default(unclass(object), digits = digits, ...)
+  if (m <- match("NAs", names(x), 0L)) {
+    NAs <- as.integer(x[m])
+    x <- x[-m]
+    attr(x, "NAs") <- NAs
+  }
+  .POSIXct(x, tz = attr(object, "tzone"), cl = c("summaryDefault",
+                                                 oldClass(object)))
+}
+
 #jsummary.Date <- summary.Date
 
-# jsummary.POSIXct <- function(object, digits = 15L, ...)
-# {
-#   x <- summary.default(unclass(object), digits = digits, ...)
-#   if (m <- match("NA's", names(x), 0L)) {
-#     NAs <- as.integer(x[m])
-#     x <- x[-m]
-#     attr(x, "NAs") <- NAs
-#   }
-#   .POSIXct(x, tz = attr(object, "tzone"), cl = c("summaryDefault",
-#                                                  oldClass(object)))
-# }
+#' Title
+#'
+#' @param object A Date object
+#' @param digits Number of significant digits for computations
+#' @param ... Additional arguments
+#'
+#' @returns A summaryDefault object
+#' @export
+#'
+#' @examples
+#' jsummary(as.Date(0:10))
+jsummary.Date <- function (object, digits = 12L, ...)
+{
+  x <- summary.default(unclass(object), digits = digits, ...)
+  if (m <- match("NAs", names(x), 0L)) {
+    NAs <- as.integer(x[m])
+    x <- x[-m]
+    attr(x, "NAs") <- NAs
+  }
+  .Date(x, c("summaryDefault", oldClass(object)))
+}
 
 #' Generic function to produce privacy aware object summaries
 #'

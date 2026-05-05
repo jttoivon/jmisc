@@ -1,3 +1,10 @@
+# TODO Handle levels with zero occurrences
+# DONE This does not handle the case when the sum of "other" elements is less than min_count
+# DONE What if there are less than min_count NAs?
+# TODO For binary vectors, check if there are less than min_count FALSE or TRUE values
+# TODO Calendar times and dates don't work
+# DONE The "(Other)" level is not last in the summaries
+
 #' Privacy aware object summaries
 #'
 #' @param object An object
@@ -63,12 +70,6 @@ jsummary.default <- function(object, ..., digits, quantile.type = 7)
   value
 }
 
-# TODO: Handle levels with zero occurrences
-# DONE: This does not handle the case when the sum of "other" elements is less than min_count
-# TODO: What if there are less than min_count NAs?
-# TODO: For binary vectors, check if there are less than min_count FALSE or TRUE values
-# TODO: Calendar times and dates don't work
-
 
 #' Title
 #'
@@ -85,11 +86,12 @@ jsummary.default <- function(object, ..., digits, quantile.type = 7)
 jsummary.factor <- function(object, maxsum = 100L, ...)
 {
   min_count <- 5
+  other_level <- "(Other)"
   nas <- is.na(object)
   ll <- levels(object)
   if (ana <- any(nas))
     maxsum <- maxsum - 1L
-  object <- fct_min_count(object, min = min_count, other_level = "(Other)", max_levels = maxsum)
+  object <- fct_min_count(object, min = min_count, other_level = other_level, max_levels = maxsum)
   tbl <- table(object)    # Count the elements
   tt <- c(tbl)            # Convert to named vector
   names(tt) <- dimnames(tbl)[[1L]]
@@ -108,6 +110,9 @@ jsummary.factor <- function(object, maxsum = 100L, ...)
   #   tt <- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]]))
   # } else {
   tt <- tt[o]
+  if (other_level %in% names(tt)) {
+    tt <- c(tt[names(tt) != other_level], tt[other_level])
+  }
   #}
   if (ana)
     c(tt, `NA's` = sum(nas))

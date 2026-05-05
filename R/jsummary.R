@@ -19,10 +19,12 @@
 #'
 #' @examples
 #' jsummary(1:10)
-jsummary.default <- function(object, ..., digits, quantile.type = 7)
+jsummary.default <- function(object, ..., digits, quantile.type = 7, show_quantiles = TRUE)
 {
+  #show_quantiles <- TRUE
+  #show_quantiles <- FALSE
   if (is.factor(object))
-    return(jsummary.factor(object, ...))
+    return(jsummary.factor(object, show_quantiles = show_quantiles, ...))
   else if (is.matrix(object)) {
     if (missing(digits))
       return(summary.matrix(object, quantile.type = quantile.type,
@@ -39,12 +41,20 @@ jsummary.default <- function(object, ..., digits, quantile.type = 7)
   else if (is.numeric(object)) {
     nas <- is.na(object)
     object <- object[!nas]
-    qq <- stats::quantile(object, names = FALSE, type = quantile.type)
-    qq <- c(qq[1L:3L], mean(object), qq[4L:5L], sd(object))
+    if (show_quantiles) {
+      qq <- stats::quantile(object, names = FALSE, type = quantile.type)
+      qq <- c(qq[1L:3L], mean(object), qq[4L:5L], sd(object))
+    } else {
+      qq <- c(mean(object), sd(object))
+    }
     if (!missing(digits))
       qq <- signif(qq, digits)
-    names(qq) <- c("Min.", "1st Qu.", "Median", "Mean", "3rd Qu.",
-                   "Max.", "Sd")
+    if (show_quantiles) {
+      names(qq) <- c("Min.", "1st Qu.", "Median", "Mean", "3rd Qu.",
+                     "Max.", "Sd")
+    } else {
+      names(qq) <- c("Mean", "Sd")
+    }
     if (any(nas))
       c(qq, `NA's` = sum(nas))
     else qq
@@ -137,7 +147,7 @@ jsummary.factor <- function(object, maxsum = 100L, ...)
 #' @examples
 #' jsummary(attenu)
 jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption("digits") -
-                                                                     3L), ...)
+                                                                     3L), show_quantiles = TRUE, ...)
 {
   ncw <- function(x) {
     z <- nchar(x, type = "w", allowNA = TRUE)
@@ -147,7 +157,7 @@ jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption
     z
   }
   z <- lapply(X = as.list(object), FUN = jsummary, maxsum = maxsum,
-              digits = 12L, ...)
+              digits = 12L, show_quantiles = show_quantiles, ...)
   nv <- length(object)
   nm <- names(object)
   lw <- numeric(nv)
@@ -218,9 +228,9 @@ jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption
 #'
 #' @examples
 #' jsummary(as.POSIXct(0:10))
-jsummary.POSIXct <- function (object, digits = 15L, ...)
+jsummary.POSIXct <- function (object, digits = 15L, show_quantiles = TRUE, ...)
 {
-  x <- summary.default(unclass(object), digits = digits, ...)
+  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, ...)
   if (m <- match("NAs", names(x), 0L)) {
     NAs <- as.integer(x[m])
     x <- x[-m]
@@ -243,9 +253,9 @@ jsummary.POSIXct <- function (object, digits = 15L, ...)
 #'
 #' @examples
 #' jsummary(as.Date(0:10))
-jsummary.Date <- function (object, digits = 12L, ...)
+jsummary.Date <- function (object, digits = 12L, show_quantiles = TRUE, ...)
 {
-  x <- summary.default(unclass(object), digits = digits, ...)
+  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, ...)
   if (m <- match("NAs", names(x), 0L)) {
     NAs <- as.integer(x[m])
     x <- x[-m]

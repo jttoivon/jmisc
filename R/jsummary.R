@@ -4,7 +4,9 @@
 # TODO For binary vectors, check if there are less than min_count FALSE or TRUE values
 # DONE Calendar times and dates don't work
 # DONE The "(Other)" level is not last in the summaries
-# TODO Option to not show quantiles
+# DONE Option to not show quantiles
+# DONE difftime does not work
+# How to print standard deviation for dates/time/timediffs?
 
 #' Privacy aware object summaries
 #'
@@ -12,6 +14,8 @@
 #' @param ... Additional arguments
 #' @param digits Passed to signif()
 #' @param quantile.type Integer
+#' @param show_quantiles A logical value
+#' @param sd A logical value. Whether to show standard deviation
 #'
 #' @returns Depends on the class of the argument
 #' @importFrom stats sd
@@ -19,7 +23,7 @@
 #'
 #' @examples
 #' jsummary(1:10)
-jsummary.default <- function(object, ..., digits, quantile.type = 7, show_quantiles = TRUE)
+jsummary.default <- function(object, ..., digits, quantile.type = 7, show_quantiles = TRUE, sd = TRUE)
 {
   #show_quantiles <- TRUE
   #show_quantiles <- FALSE
@@ -43,18 +47,21 @@ jsummary.default <- function(object, ..., digits, quantile.type = 7, show_quanti
     object <- object[!nas]
     if (show_quantiles) {
       qq <- stats::quantile(object, names = FALSE, type = quantile.type)
-      qq <- c(qq[1L:3L], mean(object), qq[4L:5L], sd(object))
+      qq <- c(qq[1L:3L], mean(object), qq[4L:5L])
     } else {
-      qq <- c(mean(object), sd(object))
+      qq <- c(mean(object))
     }
+    if (sd) qq <- c(qq, sd(object))
     if (!missing(digits))
       qq <- signif(qq, digits)
     if (show_quantiles) {
-      names(qq) <- c("Min.", "1st Qu.", "Median", "Mean", "3rd Qu.",
-                     "Max.", "Sd")
+      new_names <- c("Min.", "1st Qu.", "Median", "Mean", "3rd Qu.",
+                     "Max.")
     } else {
-      names(qq) <- c("Mean", "Sd")
+      new_names <- c("Mean")
     }
+    if (sd) new_names <- c(new_names, "Sd")
+    names(qq) <- new_names
     if (any(nas))
       c(qq, `NA's` = sum(nas))
     else qq
@@ -139,6 +146,8 @@ jsummary.factor <- function(object, maxsum = 100L, ...)
 #' @param object A dataframe
 #' @param maxsum Maximum number of levels shown
 #' @param digits Passed to signif()
+#' @param show_quantiles A logical value
+#' @param sd A logical value. Whether to show standard deviation
 #' @param ... Additional arguments
 #'
 #' @returns A table
@@ -147,7 +156,8 @@ jsummary.factor <- function(object, maxsum = 100L, ...)
 #' @examples
 #' jsummary(attenu)
 jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption("digits") -
-                                                                     3L), show_quantiles = TRUE, ...)
+                                                                     3L),
+                                 show_quantiles = TRUE, sd = TRUE, ...)
 {
   ncw <- function(x) {
     z <- nchar(x, type = "w", allowNA = TRUE)
@@ -157,7 +167,7 @@ jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption
     z
   }
   z <- lapply(X = as.list(object), FUN = jsummary, maxsum = maxsum,
-              digits = 12L, show_quantiles = show_quantiles, ...)
+              digits = 12L, show_quantiles = show_quantiles, sd = sd, ...)
   nv <- length(object)
   nm <- names(object)
   lw <- numeric(nv)
@@ -221,6 +231,8 @@ jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption
 #'
 #' @param object A calendar date
 #' @param digits Number of digits for fractional seconds
+#' @param show_quantiles A logical value
+#' @param sd A logical value. Whether to show standard deviation
 #' @param ... Additional arguments
 #'
 #' @returns A summaryDefault object
@@ -228,9 +240,9 @@ jsummary.data.frame <- function (object, maxsum = 8L, digits = max(3L, getOption
 #'
 #' @examples
 #' jsummary(as.POSIXct(0:10))
-jsummary.POSIXct <- function (object, digits = 15L, show_quantiles = TRUE, ...)
+jsummary.POSIXct <- function (object, digits = 15L, show_quantiles = TRUE, sd = FALSE, ...)
 {
-  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, ...)
+  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, sd = FALSE, ...)
   if (m <- match("NAs", names(x), 0L)) {
     NAs <- as.integer(x[m])
     x <- x[-m]
@@ -240,12 +252,13 @@ jsummary.POSIXct <- function (object, digits = 15L, show_quantiles = TRUE, ...)
                                                  oldClass(object)))
 }
 
-#jsummary.Date <- summary.Date
 
 #' Title
 #'
 #' @param object A Date object
 #' @param digits Number of significant digits for computations
+#' @param show_quantiles A logical value
+#' @param sd A logical value. Whether to show standard deviation
 #' @param ... Additional arguments
 #'
 #' @returns A summaryDefault object
@@ -253,15 +266,40 @@ jsummary.POSIXct <- function (object, digits = 15L, show_quantiles = TRUE, ...)
 #'
 #' @examples
 #' jsummary(as.Date(0:10))
-jsummary.Date <- function (object, digits = 12L, show_quantiles = TRUE, ...)
+jsummary.Date <- function (object, digits = 12L, show_quantiles = TRUE, sd = FALSE, ...)
 {
-  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, ...)
+  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, sd = FALSE, ...)
   if (m <- match("NAs", names(x), 0L)) {
     NAs <- as.integer(x[m])
     x <- x[-m]
     attr(x, "NAs") <- NAs
   }
   .Date(x, c("summaryDefault", oldClass(object)))
+}
+
+
+#' Title
+#'
+#' @param object A difftime object
+#' @param digits Number of significant digits for computations
+#' @param show_quantiles A logical value
+#' @param sd A logical value. Whether to show standard deviation
+#' @param ... Additional arguments
+#'
+#' @returns A summaryDefault object
+#' @export
+#'
+#' @examples
+#' jsummary(Sys.Date() - as.Date("2026-01-01"))
+jsummary.difftime <- function (object, digits = getOption("digits"), show_quantiles = TRUE, sd = FALSE, ...)
+{
+  x <- jsummary.default(unclass(object), digits = digits, show_quantiles = show_quantiles, sd = FALSE, ...)
+  if (m <- match("NAs", names(x), 0L)) {
+    NAs <- as.integer(x[m])
+    x <- x[-m]
+    attr(x, "NAs") <- NAs
+  }
+  .difftime(x, attr(object, "units"), c("summaryDefault", oldClass(object)))
 }
 
 #' Generic function to produce privacy aware object summaries

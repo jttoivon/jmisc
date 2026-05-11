@@ -4,12 +4,16 @@
 \alias{jsummary.Date}
 \title{Title}
 \usage{
-\method{jsummary}{Date}(object, digits = 12L, ...)
+\method{jsummary}{Date}(object, digits = 12L, show_quantiles = TRUE, sd = FALSE, ...)
 }
 \arguments{
 \item{object}{A Date object}
 
 \item{digits}{Number of significant digits for computations}
+
+\item{show_quantiles}{A logical value}
+
+\item{sd}{A logical value. Whether to show standard deviation}
 
 \item{...}{Additional arguments}
 }

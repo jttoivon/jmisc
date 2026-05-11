@@ -4,7 +4,14 @@
 \alias{jsummary.default}
 \title{Privacy aware object summaries}
 \usage{
-\method{jsummary}{default}(object, ..., digits, quantile.type = 7)
+\method{jsummary}{default}(
+  object,
+  ...,
+  digits,
+  quantile.type = 7,
+  show_quantiles = TRUE,
+  sd = TRUE
+)
 }
 \arguments{
 \item{object}{An object}
@@ -14,6 +21,10 @@
 \item{digits}{Passed to signif()}
 
 \item{quantile.type}{Integer}
+
+\item{show_quantiles}{A logical value}
+
+\item{sd}{A logical value. Whether to show standard deviation}
 }
 \value{
 Depends on the class of the argument

@@ -4,12 +4,16 @@
 \alias{jsummary.POSIXct}
 \title{Title}
 \usage{
-\method{jsummary}{POSIXct}(object, digits = 15L, ...)
+\method{jsummary}{POSIXct}(object, digits = 15L, show_quantiles = TRUE, sd = FALSE, ...)
 }
 \arguments{
 \item{object}{A calendar date}
 
 \item{digits}{Number of digits for fractional seconds}
+
+\item{show_quantiles}{A logical value}
+
+\item{sd}{A logical value. Whether to show standard deviation}
 
 \item{...}{Additional arguments}
 }

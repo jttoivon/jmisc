@@ -19,5 +19,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Jarkko Toivonen \email{jarkko.toivonen.19@gmail.com}
 
+Authors:
+\itemize{
+  \item Jarkko Toivonen \email{jarkko.toivonen.19@gmail.com}
+}
+
 }
 \keyword{internal}

@@ -27,5 +27,5 @@ v
 fct_min_count(v)
 }
 \seealso{
-\code{\link[forcats:fct_lump]{forcats::fct_lump_min()}} lumps levels that appear fewer than min times.
+\code{\link[forcats:fct_lump_min]{forcats::fct_lump_min()}} lumps levels that appear fewer than min times.
 }

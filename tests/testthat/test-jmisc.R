@@ -94,3 +94,27 @@ test_that("result_is_intact_when_no_lumping_needed", {
 
 
 # add a test where there are non-occurring levels and max_levels is set
+test_that("non_occurring_levels_and_max_levels_work", {
+  v <- factor(rep(c("a", "b"), c(5, 5)), levels=c("a", "b", "c", "d"))
+  res <- fct_min_count(v, max_levels = 4)
+  expect_all_true(levels(res) == c("a", "b", "c", "d"))
+  expect_true(sum(res == "a") == 5)
+  expect_true(sum(res == "b") == 5)
+  expect_true(sum(res == "c") == 0)
+  expect_true(sum(res == "d") == 0)
+
+  res <- fct_min_count(v, max_levels = 3)
+  expect_all_true(levels(res) == c("a", "b", "c"))
+  expect_true(sum(res == "a") == 5)
+  expect_true(sum(res == "b") == 5)
+  expect_true(sum(res == "c") == 0)
+
+  # This needs still fixing!!!!!!!!!!!!!!!!!!!!!
+  res <- fct_min_count(v, max_levels = 2)
+  expect_all_true(levels(res) == c("a", "b"))
+  expect_true(sum(res == "a") == 5)
+  expect_true(sum(res == "b") == 5)
+
+})
+
+

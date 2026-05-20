@@ -33,7 +33,7 @@ is_whole_number <- function(x, tol = .Machine$double.eps^0.5) {
 #'
 #' @returns A factor
 #' @seealso [forcats::fct_lump_min()] lumps levels that appear fewer than min times.
-#' @importFrom forcats fct_other
+#' @importFrom forcats fct_other fct_drop
 #' @export
 #'
 #' @examples
@@ -64,14 +64,22 @@ fct_min_count <- function(object, min = 5, other_level = "Other", max_levels = N
 
   # Guarantee that the resulting factor has at most
   # max_levels levels
-  first_to_drop <- if (is.na(max_levels)) i else min(i, max_levels)
+  first_to_drop <- if (is.na(max_levels)) i else { if (max_levels + 1 <= length(ll) && tt[o[max_levels + 1]] == 0) i else min(i, max_levels) }
 
   last_to_drop <- match(TRUE, tt[o] == 0) - 1 # Don't drop the non-occurring levels
   if (is.na(last_to_drop)) last_to_drop <- length(ll) # If all levels occur, drop till end
 
   # Nothing to drop
-  if (last_to_drop < first_to_drop) return(object)
-
+  if (last_to_drop < first_to_drop) {
+    if (! is.na(max_levels) && (length(ll) > max_levels)) {
+      how_many_to_drop <- length(ll) - max_levels
+      #print(how_many_to_drop)
+      non_occurring_to_drop <- names(tt)[o[(length(ll) - how_many_to_drop + 1):length(ll)]]
+      #print(non_occurring_to_drop)
+      object <- fct_drop(object, only = non_occurring_to_drop)
+    }
+    return(object)
+  }
 
   if (sum(tt[o[first_to_drop:last_to_drop]]) < min) {
     if (first_to_drop == 1) {
@@ -84,5 +92,15 @@ fct_min_count <- function(object, min = 5, other_level = "Other", max_levels = N
   drop <- first_to_drop:last_to_drop
   levels_to_unite <- names(tt)[o[drop]]
   #print(levels_to_unite)
+
+  # Drop non-occurring levels if we need to
+  if (! is.na(max_levels) && ((length(ll) - length(levels_to_unite) + 1) > max_levels)) {
+    how_many_to_drop <- length(ll) - length(levels_to_unite) + 1 - max_levels
+    #print(how_many_to_drop)
+    non_occurring_to_drop <- names(tt)[o[(length(ll) - how_many_to_drop + 1):length(ll)]]
+    #print(non_occurring_to_drop)
+    object <- fct_drop(object, only = non_occurring_to_drop)
+  }
+
   forcats::fct_other(object, drop = levels_to_unite, other_level = other_level)
 }

@@ -1,4 +1,4 @@
-# TODO Handle levels with zero occurrences
+# DONE Handle levels with zero occurrences
 # DONE This does not handle the case when the sum of "other" elements is less than min_count
 # DONE What if there are less than min_count NAs?
 # TODO For binary vectors, check if there are less than min_count FALSE or TRUE values
@@ -25,6 +25,7 @@
 #' jsummary(1:10)
 jsummary.default <- function(object, ..., digits, quantile.type = 7, show_quantiles = TRUE, sd = TRUE)
 {
+  min_count <- 5
   #show_quantiles <- TRUE
   #show_quantiles <- FALSE
   if (is.factor(object))
@@ -39,7 +40,11 @@ jsummary.default <- function(object, ..., digits, quantile.type = 7, show_quanti
   value <- if (is.logical(object))
     c(Mode = "logical", {
       tb <- table(object, exclude = NULL, useNA = "ifany")
+      # If there are NA values, add a corresponding name to the result
       if (!is.null(n <- dimnames(tb)[[1L]]) && any(iN <- is.na(n))) dimnames(tb)[[1L]][iN] <- "NA's"
+      if ("NA's"  %in% names(tb) && tb["NA's"] < min_count) stop("Total count of NA values is too low")
+      if ("FALSE" %in% names(tb) && tb["FALSE"] < min_count) stop("Total count of FALSE values is too low")
+      if ("TRUE"  %in% names(tb) && tb["TRUE"] < min_count) stop("Total count of TRUE values is too low")
       tb
     })
   else if (is.numeric(object)) {
